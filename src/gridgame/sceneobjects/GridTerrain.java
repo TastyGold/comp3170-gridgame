@@ -37,7 +37,22 @@ public class GridTerrain extends SceneObject {
 	
 	private float[] color = { 0.55f, 0.5f, 0.6f }; // purplish
 	
+	private int gridMinX;
+	private int gridMaxX;
+	private int gridMinY;
+	private int gridMaxY;
+	private int gridSizeX;
+	private int gridSizeY;
+	
 	public GridTerrain(int startX, int startY, int endX, int endY) {
+		
+		gridMinX = startX;
+		gridMinY = startY;
+		gridMaxX = endX;
+		gridMaxY = endY;
+		gridSizeX = endX - startX + 1;
+		gridSizeY = endY - startY + 1;
+		
 		 // compile shader
 		shader = ShaderLibrary.instance.compileShader(VERTEX_SHADER, FRAGMENT_SHADER);
 		
@@ -58,12 +73,12 @@ public class GridTerrain extends SceneObject {
 		indexBuffer = GLBuffers.createIndexBuffer(indices);
 
 		// initialise instance data
-		positions = new Vector3f[(endX - startX + 1) * (endY - startY + 1)];
-		tiles = new float[(endX - startX + 1) * (endY - startY + 1)];
+		positions = new Vector3f[gridSizeX * gridSizeY];
+		tiles = new float[gridSizeX * gridSizeY];
 		
 		int i = 0;
-		for (int x = startX; x <= endX; x++) {
-			for (int y = startY; y <= endY; y++) {
+		for (int y = startY; y <= endY; y++) {
+			for (int x = startX; x <= endX; x++) {
 				positions[i] = new Vector3f(x, y, 0);
 				tiles[i] = Math.max(Math.abs(x + 0.5f), Math.abs(y + 0.5f)) > 12 ? 1 : 0;
 				i++;
@@ -72,6 +87,26 @@ public class GridTerrain extends SceneObject {
 
 		positionBuffer = GLBuffers.createBuffer(positions);
 		tileBuffer = GLBuffers.createBuffer(tiles, GL_FLOAT);
+	}
+	
+	public void setTile(int x, int y, float tile) {
+		int ix = x - gridMinX;
+		int iy = y - gridMinY;
+		
+		tiles[ix + (iy * gridSizeX)] = tile;
+	}
+	
+	public void setRect(int startX, int startY, int endX, int endY, float tile) {
+
+		for (int x = startX; x <= endX; x++) {
+			for (int y = startY; y <= endY; y++) {
+				setTile(x, y, tile);
+			}
+		}
+	}
+	
+	public void updateTileBuffers() {
+		GLBuffers.updateBuffer(tileBuffer, tiles, GL_FLOAT);
 	}
 
 	public void setColors(Color color) {
@@ -88,7 +123,7 @@ public class GridTerrain extends SceneObject {
 		
 		// configure rendering
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-		glPolygonMode(GL_FRONT, GL_FILL);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		
 		// pass data for every instance as attributes
 		shader.setAttribute("a_worldPos", positionBuffer);

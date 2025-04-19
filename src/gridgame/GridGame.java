@@ -96,6 +96,8 @@ public class GridGame implements IWindowListener {
 		mvpMatrix.set(projectionMatrix).mul(viewMatrix);
 		
 		scene.draw(mvpMatrix);
+		
+		input.clear();
 	}
 	
 	@Override

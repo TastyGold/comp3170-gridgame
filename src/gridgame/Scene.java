@@ -1,5 +1,7 @@
 package gridgame;
 
+import org.joml.Matrix4f;
+
 import comp3170.InputManager;
 import comp3170.SceneObject;
 import gridgame.sceneobjects.Axes;
@@ -7,26 +9,34 @@ import gridgame.sceneobjects.Camera;
 import gridgame.sceneobjects.Grid;
 import gridgame.sceneobjects.GridTerrain;
 import gridgame.sceneobjects.Player;
+import gridgame.sceneobjects.PlayerController;
 
 public class Scene extends SceneObject{
 	
 	public static Scene theScene;
 	
-	private Player player;
-	
 	private Camera mainCamera;
+	private PlayerController player;
 	
 	public Scene()
 	{
 		theScene = this;
-		player = new Player();
-		player.setParent(this);
+		
+		Player playerMesh = new Player();
+		player = new PlayerController(playerMesh);
 		
 		Grid grid = new Grid(-15,-15,15,15);
 		grid.setParent(this);
+		playerMesh.setParent(grid);
 		
 		GridTerrain terrain = new GridTerrain(-15, -15, 14, 14);
 		terrain.setParent(grid);
+		
+		terrain.setRect(-7, -5, 6, -3, 1);
+		terrain.updateTileBuffers();
+		
+		// iso mode
+		//grid.getMatrix().set(new Matrix4f(1,-0.5f,0,0, 1,0.5f,0,0, 0,0,1,0, 0,0,0,1));
 
 		Axes axes = new Axes();
 		axes.setParent(this);
@@ -37,7 +47,7 @@ public class Scene extends SceneObject{
 	}
 
 	public void update(InputManager input, float deltaTime) {
-		
+		player.update(input, deltaTime);
 	}
 	
 	public Camera getCamera() {
