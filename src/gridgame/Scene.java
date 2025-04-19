@@ -22,12 +22,8 @@ public class Scene extends SceneObject{
 	{
 		theScene = this;
 		
-		Player playerMesh = new Player();
-		player = new PlayerController(playerMesh);
-		
 		Grid grid = new Grid(-15,-15,15,15);
 		grid.setParent(this);
-		playerMesh.setParent(grid);
 		
 		GridTerrain terrain = new GridTerrain(-15, -15, 14, 14);
 		terrain.setParent(grid);
@@ -44,6 +40,10 @@ public class Scene extends SceneObject{
 		mainCamera = new Camera(32);
 		mainCamera.setParent(this);
 		mainCamera.getMatrix().translation(0,0,5);
+
+		Player playerMesh = new Player();
+		player = new PlayerController(playerMesh, terrain);
+		playerMesh.setParent(grid);
 	}
 
 	public void update(InputManager input, float deltaTime) {

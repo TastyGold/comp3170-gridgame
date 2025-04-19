@@ -96,6 +96,13 @@ public class GridTerrain extends SceneObject {
 		tiles[ix + (iy * gridSizeX)] = tile;
 	}
 	
+	public float getTile(int x, int y) {
+		int ix = x - gridMinX;
+		int iy = y - gridMinY;
+		
+		return tiles[ix + (iy * gridSizeX)];
+	}
+	
 	public void setRect(int startX, int startY, int endX, int endY, float tile) {
 
 		for (int x = startX; x <= endX; x++) {
