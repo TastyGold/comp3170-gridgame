@@ -29,6 +29,10 @@ public class Scene extends SceneObject{
 		terrain.setParent(grid);
 		
 		terrain.setRect(-7, -5, 6, -3, 1);
+		terrain.setRect(1, 0, 1, 3, 1);
+		terrain.setRect(6, -2, 10, -1, 1);
+		terrain.setRect(-3, 1, -3, 3, 1);
+		terrain.setRect(-4, 2, -2, 2, 1);
 		terrain.updateTileBuffers();
 		
 		// iso mode
@@ -37,13 +41,14 @@ public class Scene extends SceneObject{
 		Axes axes = new Axes();
 		axes.setParent(this);
 		
-		mainCamera = new Camera(32);
-		mainCamera.setParent(this);
-		mainCamera.getMatrix().translation(0,0,5);
 
 		Player playerMesh = new Player();
 		player = new PlayerController(playerMesh, terrain);
 		playerMesh.setParent(grid);
+		
+		mainCamera = new Camera(15);
+		mainCamera.setParent(playerMesh);
+		mainCamera.getMatrix().translation(0,0,5);
 	}
 
 	public void update(InputManager input, float deltaTime) {

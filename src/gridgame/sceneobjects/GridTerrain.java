@@ -130,7 +130,7 @@ public class GridTerrain extends SceneObject {
 		
 		// configure rendering
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		
 		// pass data for every instance as attributes
 		shader.setAttribute("a_worldPos", positionBuffer);

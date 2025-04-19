@@ -11,6 +11,8 @@ public class PlayerController {
 	public static final float height = 1.2f;
 	private static final float halfWidth = width / 2;
 	private static final float halfHeight = height / 2;
+	private static final float minTileDistX = halfWidth + 0.5f;
+	private static final float minTileDistY = halfHeight + 0.5f;
 	
 	private Player mesh;
 	private GridTerrain terrain;
@@ -19,9 +21,9 @@ public class PlayerController {
 	private Vector2f velocity = new Vector2f();
 	private Vector2f temp = new Vector2f();
 	
-	private static final float moveSpeed = 5f;
-	private static final float gravity = 150f;
-	private static final float jumpVelocity = 30f;
+	private static final float moveSpeed = 9f;
+	private static final float gravity = 75f;
+	private static final float jumpVelocity = 18f;
 	private static final float terminalVelocity = 40f;
 
 	public PlayerController(Player mesh, GridTerrain terrain) {
@@ -32,26 +34,26 @@ public class PlayerController {
 	public void update(InputManager input, float deltaTime) {
 
 		// rotate turret on KEY_LEFT or KEY_RIGHT
-		velocity.set(0, 0);
+		velocity.set(0, velocity.y);
 		if (input.isKeyDown(GLFW_KEY_A)) {
 			velocity.x = -moveSpeed;
 		}
 		if (input.isKeyDown(GLFW_KEY_D)) {
 			velocity.x = moveSpeed;
 		}
-		if (input.isKeyDown(GLFW_KEY_S)) { 
-			velocity.y = -moveSpeed;
-		}
-		if (input.isKeyDown(GLFW_KEY_W)) {
-			velocity.y = moveSpeed;
+//		if (input.isKeyDown(GLFW_KEY_S)) { 
+//			velocity.y = -moveSpeed;
+//		}
+//		if (input.isKeyDown(GLFW_KEY_W)) {
+//			velocity.y = moveSpeed;
+//		}
+		
+		velocity.y -= gravity * deltaTime;
+		velocity.y = Math.max(-terminalVelocity, velocity.y);
+		if (input.wasKeyPressed(GLFW_KEY_SPACE)) {
+			velocity.y = jumpVelocity;
 		}
 		
-//		velocity.y -= gravity * deltaTime;
-//		velocity.y = Math.max(-terminalVelocity, velocity.y);
-//		if (input.wasKeyPressed(GLFW_KEY_SPACE)) {
-//			velocity.y = jumpVelocity;
-//		}
-//		
 		temp.set(velocity);
 		temp.mul(deltaTime);
 
@@ -60,6 +62,7 @@ public class PlayerController {
 		mesh.setPosition(position);
 	}
 	
+	private Vector2f resolveVector = new Vector2f();
 	private void movePlayer(Vector2f delta, GridTerrain terrain) {
 		
 		int minX = (int) Math.floor(position.x + delta.x - halfWidth);
@@ -68,18 +71,61 @@ public class PlayerController {
 		int maxX = (int) Math.ceil(position.x + delta.x + halfWidth);
 		int maxY = (int) Math.ceil(position.y + delta.y + halfHeight);
 		
-		for (int x = minX; x <= maxX; x++) {
-			for (int y = minY; y <= maxY; y++) {
+		position.add(delta);
+		
+		resolveVector.set(0, 0);
+		for (int x = maxX; x >= minX; x--) {
+			for (int y = maxY; y >= minY; y--) {
 				if (terrain.getTile(x, y) > 0 && intersectsTile(x, y)) {
-					System.out.println("colliding");
+					resolveTileIntersection(x, y, position, terrain);
 				}
 			}
 		}
 		
-		position.add(delta);
+		//position.add(resolveVector);
 	}
 	
-	private void 
+	private void resolveTileIntersection(int x, int y, Vector2f dest, GridTerrain terrain) {
+		float tileCenterX = x + 0.5f;
+		float tileCenterY = y + 0.5f;
+		
+		boolean leftOfTile = position.x < tileCenterX;
+		boolean belowTile = position.y < tileCenterY;
+		
+		float dx = position.x - tileCenterX;
+		float dy = position.y - tileCenterY;
+		
+		boolean priorityX = Math.abs(dx) > Math.abs(dy);
+		
+		float correction = 0;
+		
+		if (priorityX) {
+			
+			if (leftOfTile && dx > -minTileDistX && terrain.getTile(x - 1, y) <= 0) {
+				correction = -minTileDistX - dx;
+			}
+			if (!leftOfTile && dx < minTileDistX && terrain.getTile(x + 1, y) <= 0) {
+				correction = minTileDistX - dx;
+			}
+
+			dest.x += correction;
+			if (correction > 0) velocity.x = Math.max(0, velocity.x);
+			if (correction < 0) velocity.x = Math.min(0, velocity.x);
+		}
+		else {
+			
+			if (belowTile && dy > -minTileDistY && terrain.getTile(x, y - 1) <= 0) {
+				correction = -minTileDistY - dy;
+			}
+			if (!belowTile && dy < minTileDistY && terrain.getTile(x, y + 1) <= 0) {
+				correction = minTileDistY - dy;
+			}
+
+			dest.y += correction;
+			if (correction > 0) velocity.y = Math.max(0, velocity.y);
+			if (correction < 0) velocity.y = Math.min(0, velocity.y);
+		}
+	}
 	
 	private boolean intersectsTile(int x, int y) {
 		return !(position.x - halfWidth > x + 1
