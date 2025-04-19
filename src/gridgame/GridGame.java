@@ -24,7 +24,7 @@ public class GridGame implements IWindowListener {
 	// config
 	final private File DIRECTORY = new File("src/gridgame/shaders");
 	
-	private int screenWidth = 1200;
+	private int screenWidth = 1600;
 	private int screenHeight = 1200;
 	
 	private Vector4f backgroundColor = new Vector4f(0.075f,0.06f,0.13f, 1.0f); // Dark purple

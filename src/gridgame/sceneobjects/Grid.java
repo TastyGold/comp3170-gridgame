@@ -2,7 +2,7 @@ package gridgame.sceneobjects;
 
 import static org.lwjgl.opengl.GL11.GL_LINES;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
-import static org.lwjgl.opengl.GL11.glDrawElements;
+import static org.lwjgl.opengl.GL11.glDrawArrays;
 import static org.lwjgl.opengl.GL15.GL_ELEMENT_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
 
@@ -15,7 +15,7 @@ import comp3170.SceneObject;
 import comp3170.Shader;
 import comp3170.ShaderLibrary;
 
-public class Axes extends SceneObject {
+public class Grid extends SceneObject {
 	
 	// borrowed from week 6 prac for debugging purposes
 	
@@ -25,27 +25,26 @@ public class Axes extends SceneObject {
 	
 	private Vector4f[] vertices;
 	private int vertexBuffer;
-	private int indexBufferX;
-	private int indexBufferY;
 
-	private final Vector3f RED = new Vector3f(1, 0, 0);
-	private final Vector3f GREEN = new Vector3f(0, 1, 0);
+	private Vector3f gridColor = new Vector3f(0.47f,0.45f,0.5f);
 
-	public Axes() {	
+	public Grid(int startX, int startY, int endX, int endY) {	
+		
 		shader = ShaderLibrary.instance.compileShader(VERTEX_SHADER, FRAGMENT_SHADER);
 		
-		// A set of i,j axes
-		vertices = new Vector4f[] {
-		//@formatter:off
-			new Vector4f(0,0,0,1),
-			new Vector4f(1,0,0,1),
-			new Vector4f(0,1,0,1),
-		//@formatter:on
-		};
-		vertexBuffer = GLBuffers.createBuffer(vertices);
-
-		indexBufferX = GLBuffers.createIndexBuffer(new int[] {0,1});		
-		indexBufferY = GLBuffers.createIndexBuffer(new int[] {0,2});		
+		vertices = new Vector4f[(endX - startX + endY - startY + 2) * 2];
+		
+		int k = 0;
+		for (int i = startX; i <= endX; i++) {
+			vertices[k++] = new Vector4f(i, startY, 0, 1);
+			vertices[k++] = new Vector4f(i, endY, 0, 1);
+		}
+		for (int i = startY; i <= endY; i++) {
+			vertices[k++] = new Vector4f(startX, i, 0, 1);
+			vertices[k++] = new Vector4f(endX, i, 0, 1);
+		}
+		
+		vertexBuffer = GLBuffers.createBuffer(vertices);	
 	}
 	
 	public void drawSelf(Matrix4f mvpMatrix) {
@@ -56,13 +55,7 @@ public class Axes extends SceneObject {
 		shader.setAttribute("a_position", vertexBuffer);
 
 		// X axis in red
-		shader.setUniform("u_color", RED);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferX);
-		glDrawElements(GL_LINES, 2, GL_UNSIGNED_INT, 0);
-
-		// Y axis in green
-		shader.setUniform("u_color", GREEN);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferY);
-		glDrawElements(GL_LINES, 2, GL_UNSIGNED_INT, 0);
+		shader.setUniform("u_color", gridColor);
+		glDrawArrays(GL_LINES, 0, vertices.length);
 	}
 }
