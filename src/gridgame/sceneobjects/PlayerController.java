@@ -89,42 +89,39 @@ public class PlayerController {
 		float tileCenterX = x + 0.5f;
 		float tileCenterY = y + 0.5f;
 		
-		boolean leftOfTile = position.x < tileCenterX;
-		boolean belowTile = position.y < tileCenterY;
-		
 		float dx = position.x - tileCenterX;
 		float dy = position.y - tileCenterY;
 		
 		boolean priorityX = Math.abs(dx) > Math.abs(dy);
-		
-		float correction = 0;
-		
-		if (priorityX) {
-			
-			if (leftOfTile && dx > -minTileDistX && terrain.getTile(x - 1, y) <= 0) {
-				correction = -minTileDistX - dx;
-			}
-			if (!leftOfTile && dx < minTileDistX && terrain.getTile(x + 1, y) <= 0) {
-				correction = minTileDistX - dx;
-			}
 
+		if (priorityX) {
+			float correction = getTileCorrection(dx, minTileDistX, x, y, 1, 0);
+			
 			dest.x += correction;
+			
 			if (correction > 0) velocity.x = Math.max(0, velocity.x);
 			if (correction < 0) velocity.x = Math.min(0, velocity.x);
 		}
 		else {
-			
-			if (belowTile && dy > -minTileDistY && terrain.getTile(x, y - 1) <= 0) {
-				correction = -minTileDistY - dy;
-			}
-			if (!belowTile && dy < minTileDistY && terrain.getTile(x, y + 1) <= 0) {
-				correction = minTileDistY - dy;
-			}
+			float correction = getTileCorrection(dy, minTileDistY, x, y, 0, 1);
 
 			dest.y += correction;
+			
 			if (correction > 0) velocity.y = Math.max(0, velocity.y);
 			if (correction < 0) velocity.y = Math.min(0, velocity.y);
 		}
+	}
+	
+	private float getTileCorrection(float dv, float minDv, int x, int y, int xOffset, int yOffset) {
+
+		float correction = 0;
+		if (dv < 0 && dv > -minDv && terrain.getTile(x - xOffset, y - yOffset) <= 0) {
+			correction = -minDv - dv;
+		}
+		if (dv >= 0 && dv < minDv && terrain.getTile(x + xOffset, y + yOffset) <= 0) {
+			correction = minDv - dv;
+		}
+		return correction;
 	}
 	
 	private boolean intersectsTile(int x, int y) {
